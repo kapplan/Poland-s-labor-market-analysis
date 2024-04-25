@@ -173,3 +173,40 @@ ggplot(data_melted, aes(x = time, y = Percentage, fill = Category)) +
        x = 'Year',
        y = 'Percentage (%)')
 
+#What occupation males and females work at
+library(lattice)
+library(reshape2)  # for melting the data
+employment_data <- read.csv('/Users/apple/Downloads/sex.employment.occupation(thousands).csv', header=TRUE, sep=';')
+employment_data
+
+str(employment_data)
+
+# You need to adjust this to your actual occupation column names
+long_data <- melt(employment_data, id.vars = c("ref_area.label", "sex.label", "classif1.label", "classif2.label", "time"),
+                  variable.name = "classif2.label", value.name = "sex.employment.occupation.thousands.")
+
+# Clean and prepare the data
+# This might involve renaming columns, converting factors, and filtering out unnecessary rows
+# For example, let's rename some columns for clarity
+colnames(long_data)[colnames(long_data) == 'ref_area.label'] <- 'Country'
+colnames(long_data)[colnames(long_data) == 'sex.label'] <- 'Sex'
+colnames(long_data)[colnames(long_data) == 'classif1.label'] <- 'EmploymentStatus'
+colnames(long_data)[colnames(long_data) == 'classif2.label'] <- 'SkillLevel'
+colnames(long_data)[colnames(long_data) == 'time'] <- 'Year'
+colnames(long_data)[colnames(long_data) == 'sex.employment.occupation.thousands.'] <- 'EmploymentCount'
+
+
+# Filter out unnecessary rows (for example, totals or aggregates that are not needed for the analysis)
+# For instance, if we only want to look at detailed occupations, not totals:
+long_data <- subset(long_data, SkillLevel != "Total")
+
+# Now, let's create the lattice plot
+# We will make a separate barchart for each year and by sex, using different panels for each sex
+barchart(EmploymentCount ~ SkillLevel | factor(Year) * Sex, data = long_data,
+         layout = c(1, 1),  # Adjust the layout based on how many panels you want per row and column
+         auto.key = list(points = FALSE, rectangles = TRUE, space = "right"),
+         main = "Employment by Skill Level, Sex, and Year",
+         xlab = "Skill Level",
+         ylab = "Employment Count",
+         scales = list(x = list(rot = 90)),  # Rotate the x-axis labels if they are long
+         col = c("blue", "pink"))  # Use colors or any other aesthetic properties as needed
