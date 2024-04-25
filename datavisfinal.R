@@ -6,61 +6,77 @@ library(viridis)
 # Read the data
 data_pop <- read.csv('/Users/apple/Downloads/POP_XWAP_SEX_AGE_NB_A-filtered-2024-01-14.csv',  header = TRUE, sep = ',')
 data_emp <- read.csv('/Users/apple/Downloads/EMP_DWAP_SEX_AGE_RT_A-filtered-2024-01-14.csv', header = TRUE, sep = ';' )
+
 colnames(data_pop)
 colnames(data_emp)
 
-# Standardizing column names if needed
+print(names(data_pop))
+print(names(data_emp))
 
-# Merging the datasets
-names(data_emp)[names(data_emp) == "time"] <- "Year"
+
+# Clean and rename before merging
+# Rename columns in data_pop
+names(data_pop)[names(data_pop) == "sex.label"] <- "Sex"
+names(data_pop)[names(data_pop) == "time"] <- "Year"
+
+# Remove unwanted columns in data_pop before renaming all to a standardized set
+data_pop <- data_pop[, !(names(data_pop) %in% c("obs_status.label", "note_classif.label", "note_indicator.label", "note_source.label"))]
+names(data_pop) <- c("Country", "Indicator", "Source", "Sex", "Age", "Year", "Population")  # Assuming all required columns are present and named
+
+# Rename columns in data_emp
 names(data_emp)[names(data_emp) == "sex.label"] <- "Sex"
+names(data_emp)[names(data_emp) == "time"] <- "Year"
 
+# Verify the changes
+print(names(data_pop))
+print(names(data_emp))
+
+# Merging the datasets on 'Year' and 'Sex'
 merged_data <- merge(data_pop, data_emp, by = c("Year", "Sex"))
 
+# Add a column for employment count if not already calculated
+merged_data$EmploymentCount <- merged_data$Population * merged_data$emp.ratio
 
-# Viewing the merged data
-head(merged_data)
+# Check the resulting merged data
+print(head(merged_data))
 colnames(merged_data)
 
-data_pop$obs_status.label <- NULL
-data_pop$note_classif.label <- NULL
-data_pop$note_indicator.label <- NULL
-data_pop$note_source.label <- NULL
+print(unique(merged_data$Sex.x))
+print(unique(merged_data$Sex.y))
 
-head(data_pop)
+merged_data$Sex <- merged_data$Sex.x  # or choose Sex.y based on the analysis above
+merged_data$Sex.x <- NULL  # Drop the old column
+merged_data$Sex.y <- NULL  # Drop the old column
 
-colnames(data_pop) <- c("Country", "Indicator", "Source","Sex", "Age", "Year", "Population")
+plot_data$Year <- as.factor(plot_data$Year)
 
-# Assuming the dataset has columns 'Year', 'Age', 'Sex', and 'Population'
-
-# Prepare data for plotting
+# Calculate total employment and average employment ratio by year and sex
+library(dplyr)
 plot_data <- merged_data %>%
   group_by(Year, Sex) %>%
-  summarise(TotalEmployed = sum(Population, na.rm = TRUE),  # Total employed population
+  summarise(TotalEmployment = sum(EmploymentCount, na.rm = TRUE),
             AvgEmploymentRatio = mean(emp.ratio, na.rm = TRUE)) %>%
   ungroup()
 
-# Splitting the data for line and bar plots
-line_data <- plot_data %>%
-  group_by(Year) %>%
-  summarise(AvgEmploymentRatio = mean(AvgEmploymentRatio, na.rm = TRUE)) %>%
-  ungroup()
+print(plot_data)
 
-# Define a factor to scale the employment ratio for the secondary y-axis
-ratio_scale_factor <- max(plot_data$TotalEmployed) / max(line_data$AvgEmploymentRatio)
-
-# Create the plot with bars and a line
-ggplot() +
-  geom_bar(data = plot_data, aes(x = Year, y = TotalEmployed, fill = Sex), 
-           stat = "identity", position = position_dodge()) +
-  scale_fill_viridis(discrete = TRUE, option = "viridis") +
-  geom_line(data = line_data, aes(x = Year, y = AvgEmploymentRatio * ratio_scale_factor),
-            group = 1, colour = "blue", size = 1) +
-  scale_y_continuous(name = "Total Employed Population (in thousands)",
-                     sec.axis = sec_axis(~ ./ratio_scale_factor, name = "Average Employment Ratio (%)")) +
-  labs(title = "Total Employed Population by Sex and Employment Ratio Over Time",
-       x = "Year") +
+# Plot Total Employment and Average Employment Ratio
+ggplot(plot_data, aes(x = Year)) +
+  geom_col(aes(y = TotalEmployment, fill = Sex), position = position_dodge(width = 0.9)) +
+  geom_line(aes(y = AvgEmploymentRatio * 1000, group = Sex, color = Sex), size = 0.5) +
+  geom_smooth(aes(y = TotalEmployment, color = Sex, group = Sex), method = "lm", se = FALSE, fullrange = TRUE) +
+  geom_smooth(aes(y = AvgEmploymentRatio * 1000, color = Sex, group = Sex), method = "lm", se = FALSE, fullrange = TRUE, linetype = "dashed") +
+  scale_y_continuous(
+    name = "Total Employment",
+    sec.axis = sec_axis(~ ./1000, name = "Employment Ratio (%)")
+  ) +
+  scale_fill_viridis_d() +
+  labs(
+    title = "Employment Trends by Year and Sex",
+    subtitle = "Includes linear trend lines for total employment and employment ratios"
+  ) +
   theme_minimal()
+
 
 #Working Population by Sex
 data <- read.csv("/Users/apple/Downloads/workinpopbysexaageedu.csv", header = TRUE, sep = ';')
@@ -111,6 +127,7 @@ ggplot(data_summarized, aes(x = classif1.label, y = total.obs.value, fill = Educ
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
 
 
+
 #Educational mismatch data 
 #Load data
 data1 <- read.csv('/Users/apple/Downloads/sexemploymenteducationalmismatch.csv',  header = TRUE, sep = ';')
@@ -118,8 +135,7 @@ data1
 
 data1 <- data1 %>%
   dplyr::mutate_at(vars(contains("label")), as.factor) %>% # convert labels to factors
-  dplyr::mutate(time = as.integer(time), educational.mismatch.in.thousands = as.numeric(educational.mismatch.in.thousands)) # ensure numeric columns are correct
-
+  dplyr::mutate(time = as.integer(time), educational.mismatch.in.thousands = as.numeric(educational.mismatch.in.thousands))
 
 # Filtering and transforming the data
 filtered_data <- data1 %>%
@@ -160,18 +176,42 @@ data_long <- data_long %>%
 
 # Melting the data for plotting
 data_melted <- data_long %>%
-  gather(key = 'Category', value = 'Percentage', Percent_Overeducated, Percent_Matched, Percent_Undereducated) 
+  gather(key = 'Category', value = 'Percentage', Percent_Overeducated, Percent_Matched, Percent_Undereducated) %>%
+  mutate(Category = fct_recode(Category, 
+                               "Overeducated" = "Percent_Overeducated", 
+                               "Matched" = "Percent_Matched", 
+                               "Undereducated" = "Percent_Undereducated"))
 
-data_melted$Category <- factor(data_melted$Category, levels = c("Percent_Matched", "Percent_Undereducated", "Percent_Overeducated"))
-
-# Plotting the data
-ggplot(data_melted, aes(x = time, y = Percentage, fill = Category)) +
+# Plotting
+ggplot(data_melted, aes(x = as.factor(time), y = Percentage, fill = Category)) +
   geom_bar(stat = 'identity', position = 'stack') +
-  facet_wrap(~ sex.label) +
+  facet_wrap(~ sex.label, scales = 'free_y') +
+  scale_fill_viridis_d(begin = 0.3, end = 0.9, direction = 1, option = "D") +  # More distinctive colors
   theme_minimal() +
-  labs(title = 'Educational Mismatch Over Years by Gender',
-       x = 'Year',
-       y = 'Percentage (%)')
+  labs(
+    title = 'Educational Mismatch by Gender Over Time',
+    subtitle = 'Each stack represents the proportion of educational alignment',
+    x = 'Year',
+    y = 'Percentage (%)',  # Setting the y-axis label here
+    fill = 'Mismatch Category'
+  ) +
+  geom_text(
+    aes(label = scales::percent(Percentage/100, accuracy =.05)), 
+    position = position_stack(vjust = 0.5), 
+    size = 2, 
+    color = "white", 
+    check_overlap = TRUE
+  ) +
+  theme(
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10),
+    plot.title = element_text(size = 14, face = "bold"),
+    axis.text.x = element_text(angle = 0, vjust = 0.5, size = 10),
+    axis.text.y = element_text(size = 12),
+    plot.subtitle = element_text(size = 14),
+    # Remove or adjust any line that explicitly hides the y-axis title if it was here
+  )
+
 
 #What occupation males and females work at
 library(lattice)
@@ -197,16 +237,146 @@ colnames(long_data)[colnames(long_data) == 'sex.employment.occupation.thousands.
 
 
 # Filter out unnecessary rows (for example, totals or aggregates that are not needed for the analysis)
-# For instance, if we only want to look at detailed occupations, not totals:
+# We only want to look at detailed occupations, not totals:
 long_data <- subset(long_data, SkillLevel != "Total")
 
-# Now, let's create the lattice plot
-# We will make a separate barchart for each year and by sex, using different panels for each sex
-barchart(EmploymentCount ~ SkillLevel | factor(Year) * Sex, data = long_data,
-         layout = c(1, 1),  # Adjust the layout based on how many panels you want per row and column
-         auto.key = list(points = FALSE, rectangles = TRUE, space = "right"),
-         main = "Employment by Skill Level, Sex, and Year",
-         xlab = "Skill Level",
-         ylab = "Employment Count",
-         scales = list(x = list(rot = 90)),  # Rotate the x-axis labels if they are long
-         col = c("blue", "pink"))  # Use colors or any other aesthetic properties as needed
+# We only want to look at detailed occupations, not totals:
+long_data <- subset(long_data, SkillLevel != "Total")
+long_data <- subset(long_data, Sex != "Total")
+
+library(plotly)
+
+
+
+
+# Install shiny
+install.packages("shiny")
+
+# Install plotly
+install.packages("plotly")
+
+# Shiny comperative visuals
+library(shiny)
+library(plotly)
+library(shiny)
+library(plotly)
+
+# We only want to look at detailed occupations, not totals:
+long_data <- subset(long_data, SkillLevel != "Total")
+long_data <- subset(long_data, Sex != "Sex: Total")
+ui <- fluidPage(
+  titlePanel("Comparative Employment Visualization"),
+  sidebarLayout(
+    sidebarPanel(
+      selectInput("year1", "Select First Year:", choices = unique(long_data$Year)),
+      selectInput("year2", "Select Second Year:", choices = unique(long_data$Year))
+    ),
+    mainPanel(
+      plotlyOutput("plot1"),
+      plotlyOutput("plot2")
+    )
+  )
+)
+server <- function(input, output) {
+  custom_colors <- c("Sex: Female" = "#FF69B4", "Sex: Male" = "#1E90FF")  # Light purple for females, navy blue for males
+  # Plot for the first selected year
+  output$plot1 <- renderPlotly({
+    filtered_data <- long_data[long_data$Year == input$year1,]
+    plot_ly(data = filtered_data, x = ~SkillLevel, y = ~EmploymentCount, color = ~Sex, colors = custom_colors, type = 'bar',
+            hoverinfo = 'text', text = ~paste('Count:', EmploymentCount)) %>%
+      layout(
+        title = paste("Employment by Skill Level and Sex for the Year", input$year1),
+        xaxis = list(title = "Skill Level"),
+        yaxis = list(title = "Employment in thousnds"),
+        barmode = 'group',
+        colorway = custom_colors
+      )
+  })
+  
+  # Plot for the second selected year
+  output$plot2 <- renderPlotly({
+    filtered_data <- long_data[long_data$Year == input$year2,]
+    plot_ly(data = filtered_data, x = ~SkillLevel, y = ~EmploymentCount, color = ~Sex, colors = custom_colors, type = 'bar',
+            hoverinfo = 'text', text = ~paste('Count:', EmploymentCount)) %>%
+      layout(
+        title = paste("Employment by Skill Level and Sex for the Year", input$year2),
+        xaxis = list(title = "Skill Level"),
+        yaxis = list(title = "Employment i thousands"),
+        barmode = 'group',
+        colorway = custom_colors
+      )
+  })
+}
+shinyApp(ui, server)
+
+# Labour force by sex, age, edu
+
+
+
+# Average Monthly Earning by Sex and Education
+earnings_data <- read.csv('/Users/apple/Downloads/averagemonthlyearningbysexandoccupation.csv', header = TRUE, sep = ';')
+
+# Preprocess the data
+
+# Apply filters step by step
+earnings_data_filtered <- earnings_data %>%
+  # Exclude rows where 'classif2.label' contains 'Occupation (Skill level)'
+  filter(!grepl("Occupation \\(Skill level\\):", classif1.label)) %>%
+  filter(!grepl("Occupation \\(ISCO-08\\): Total", classif1.label)) %>%
+  # Exclude rows where 'classif2.label' is 'Currency: U.S. dollars'
+  filter(!grepl("Currency: U.S. dollars", classif2.label)) %>%
+  # Exclude rows where 'sex.label' is 'Sex: Total'
+  filter(sex.label != "Sex: Total") %>%
+  # Exclude rows where 'classif2.label' is 'Occupation (ISCO-08): X. Not elsewhere classified'
+  filter(!grepl("Occupation \\(ISCO-08\\): X. Not elsewhere classified", classif1.label))
+
+# Check the filtered data
+print(head(earnings_data_filtered))
+
+# First, make sure your earnings data is numeric, not character
+earnings_data_filtered$average.monthly.earnings <- as.numeric(as.character(earnings_data_filtered$average.monthly.earnings))
+
+# Then we group and summarize if needed
+earnings_by_occupation <- earnings_data_filtered %>%
+  group_by(classif2.label, time, sex.label) %>%
+  summarise(average_earnings = mean(average.monthly.earnings, na.rm = TRUE)) %>%
+  ungroup()
+
+# Now, we plot with ggplot
+ggplot(earnings_by_occupation, aes(x = time, y = average_earnings, color = sex.label, group = interaction(classif2.label, sex.label))) +
+  geom_line(size = 1.2) +  # Slightly thicker lines for better visibility
+  geom_point(size = 3, shape = 21, fill = "white") +  # Add points with white fill
+  facet_wrap(~classif2.label, scales = "free_y") + 
+  labs(title = "Change in Monthly Earnings by Year and Sex",
+       x = "Year",
+       y = "Average Monthly Earnings") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels if needed
+
+#comparison of earning in female dominant occupations
+# Filter data for the year 2022 and the specified occupations
+filtered_data <- earnings_data %>%
+  filter(time == 2022,
+         classif1.label %in% c("Occupation (ISCO-08): 2. Professionals",
+                           "Occupation (ISCO-08): 3. Technicians and associate professionals",
+                           "Occupation (ISCO-08): 4. Clerical support workers",
+                           "Occupation (ISCO-08): 5. Service and sales workers",
+                           "Occupation (ISCO-08): 9. Elementary occupations")) %>%
+  # Remove the prefix to clean up the occupation names for better display
+  mutate(classif1.label = str_remove(classif1.label, "Occupation \\(ISCO-08\\): "))
+
+# Plotting the data
+p <- ggplot(filtered_data, aes(x = classif1.label, y = average.monthly.earnings, fill = sex.label)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
+  labs(title = "Comparison of Earnings Between Genders in Female-Dominant ISCO-8 Occupations (2022)",
+       x = "Occupation",
+       y = "Average Monthly Earnings (in Złoty)",
+       fill = "Sex") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for readability
+        legend.position = "top") +
+  scale_fill_manual(values = c("Sex: Female" = "#FF69B4", "Sex: Male" = "#1E90FF"))  # Assign colors
+
+# Print the plot
+print(p)
+
