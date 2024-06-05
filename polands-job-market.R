@@ -171,7 +171,7 @@ data_melted <- data_long %>%
 
 # Plotting
 ggplot(data_melted, aes(x = as.factor(time), y = Percentage, fill = Category)) +
-  geom_bar(stat = 'identity', position = 'stack') +
+  geom_bar(stat = 'identity0', position = 'stack') +
   facet_wrap(~ sex.label, scales = 'free_y') +
   scale_fill_viridis_d(begin = 0.3, end = 0.9, direction = 1, option = "D") +  
   theme_minimal() +
@@ -276,8 +276,47 @@ server <- function(input, output) {
 }
 shinyApp(ui, server)
 
-# ANALYSIS 5
-# Average Monthly Earning by Sex and Education
+# ANALYSIS 5 
+# Mean weekly hours worked by occupation and gender
+
+# Load the Data
+data <- read.csv('/Users/apple/Downloads/meanhoursbysexoccupation.csv', header = TRUE, sep = ';')
+
+# Clean and prepare the data
+data <- data %>%
+  filter(sex.label != "Sex: Total") %>%
+  mutate(Occupation = str_remove(classif1.label, "Occupation \\(ISCO-08\\): "),
+         Year = as.factor(time))
+
+# Group and summarize the data
+hours_trend <- data %>%
+  group_by(Year, Occupation, sex.label) %>%
+  summarise(mean_hours = mean(mean.weekly.hours.worked, na.rm = TRUE), .groups = 'drop')
+
+# Plotting the data
+p <- ggplot(hours_trend, aes(x = Year, y = mean_hours, color = sex.label, group = interaction(sex.label, Occupation))) +
+  geom_line(size = 1.2) +  # Slightly thicker lines for better visibility
+  geom_point(size = 3, shape = 21, fill = "white") +  # Add points with white fill
+  facet_wrap(~ Occupation, scales = "free_y", ncol = 2) + 
+  labs(title = "Trends in Mean Weekly Hours Worked by Occupation and Gender",
+       x = "Year",
+       y = "Mean Weekly Hours Worked",
+       color = "Sex") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels if needed
+        plot.title = element_text(size = 20, face = "bold"),
+        plot.subtitle = element_text(size = 16),
+        axis.title = element_text(size = 15),
+        axis.text = element_text(size = 12),
+        legend.title = element_text(size = 15),
+        legend.text = element_text(size = 12))
+
+# Print the plot
+print(p)
+
+
+# ANALYSIS 6
+# Average Monthly Earning by Sex and Occupation
 earnings_data <- read.csv('/Users/apple/Downloads/averagemonthlyearningbysexandoccupation.csv', header = TRUE, sep = ';')
 
 # Preprocess the data, apply filters
@@ -315,7 +354,32 @@ ggplot(earnings_by_occupation, aes(x = time, y = average_earnings, color = sex.l
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels if needed
 
-# ANALYSIS 6
+# ANALYSIS 7
+# Average monthly earnings by sex across different job titles over time
+# Group and summarize data
+earnings_by_job_title <- earnings_data_filtered %>%
+  group_by(classif1.label, time, sex.label) %>%
+  summarise(average_earnings = mean(average.monthly.earnings, na.rm = TRUE)) %>%
+  ungroup()
+
+# Clean up the job titles for better display
+earnings_by_job_title <- earnings_by_job_title %>%
+  mutate(classif1.label = str_remove(classif1.label, "Occupation \\(ISCO-08\\): "))
+
+# Plotting
+ggplot(earnings_by_job_title, aes(x = time, y = average_earnings, color = sex.label)) +
+  geom_line(size = 1.1) +  # Slightly thicker lines for better visibility
+  geom_point(size = 2.4, shape = 21, fill = "white") +  # Add points with white fill
+  facet_wrap(~classif1.label, scales = "free_y") + 
+  labs(title = "Change in Monthly Earnings by Sex and Job Title",
+       x = "Year",
+       y = "Average Monthly Earnings (in Złoty)",
+       color = "Sex", linetype = "Sex") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels if needed
+
+
+# ANALYSIS 8
 # Comparison of earnings in female dominant occupations
 # Filter data for the year 2022 and the specified occupations
 filtered_data <- earnings_data %>%
@@ -333,7 +397,7 @@ filtered_data <- earnings_data %>%
 # Plotting the data
 p <- ggplot(filtered_data, aes(x = classif1.label, y = average.monthly.earnings, fill = sex.label)) +
   geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
-  labs(title = "Comparison of Earnings Between Genders in Female-Dominant ISCO-8 Occupations (2022)",
+  labs(title = "Comparison of Earnings Between Genders in Female-Dominant ISCO-8 Occupations (in 2022)",
        x = "Occupation",
        y = "Average Monthly Earnings (in Złoty)",
        fill = "Sex") +
@@ -345,42 +409,4 @@ p <- ggplot(filtered_data, aes(x = classif1.label, y = average.monthly.earnings,
 # Print the plot
 print(p)
 
-# Load necessary libraries
-library(ggplot2)
-library(dplyr)
-library(stringr)
 
-# Load dataset
-
-# Preprocess the data, apply filters
-earnings_data_filtered <- earnings_data %>%
-  filter(!grepl("Occupation \\(Skill level\\):", classif1.label)) %>%
-  filter(!grepl("Occupation \\(ISCO-08\\): Total", classif1.label)) %>%
-  filter(!grepl("Currency: U.S. dollars", classif2.label)) %>%
-  filter(sex.label != "Sex: Total") %>%
-  filter(!grepl("Occupation \\(ISCO-08\\): X. Not elsewhere classified", classif1.label))
-
-# Ensure the earnings data is numeric
-earnings_data_filtered$average.monthly.earnings <- as.numeric(as.character(earnings_data_filtered$average.monthly.earnings))
-
-# Group and summarize data
-earnings_by_education <- earnings_data_filtered %>%
-  group_by(classif2.label, sex.label) %>%
-  summarise(average_earnings = mean(average.monthly.earnings, na.rm = TRUE)) %>%
-  ungroup()
-
-# Clean up the education levels for better display
-earnings_by_education <- earnings_by_education %>%
-  mutate(classif2.label = str_remove(classif2.label, "Occupation \\(ISCO-08\\): "))
-
-# Plotting
-ggplot(earnings_by_education, aes(x = classif2.label, y = average_earnings, fill = sex.label)) +
-  geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
-  labs(title = "Average Monthly Earnings by Sex and Education Level",
-       x = "Education Level",
-       y = "Average Monthly Earnings (in Złoty)",
-       fill = "Sex") +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for readability
-        legend.position = "top") +
-  scale_fill_manual(values = c("Sex: Female" = "#F08080", "Sex: Male" = "#20B2AA"))
