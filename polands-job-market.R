@@ -345,3 +345,42 @@ p <- ggplot(filtered_data, aes(x = classif1.label, y = average.monthly.earnings,
 # Print the plot
 print(p)
 
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(stringr)
+
+# Load dataset
+
+# Preprocess the data, apply filters
+earnings_data_filtered <- earnings_data %>%
+  filter(!grepl("Occupation \\(Skill level\\):", classif1.label)) %>%
+  filter(!grepl("Occupation \\(ISCO-08\\): Total", classif1.label)) %>%
+  filter(!grepl("Currency: U.S. dollars", classif2.label)) %>%
+  filter(sex.label != "Sex: Total") %>%
+  filter(!grepl("Occupation \\(ISCO-08\\): X. Not elsewhere classified", classif1.label))
+
+# Ensure the earnings data is numeric
+earnings_data_filtered$average.monthly.earnings <- as.numeric(as.character(earnings_data_filtered$average.monthly.earnings))
+
+# Group and summarize data
+earnings_by_education <- earnings_data_filtered %>%
+  group_by(classif2.label, sex.label) %>%
+  summarise(average_earnings = mean(average.monthly.earnings, na.rm = TRUE)) %>%
+  ungroup()
+
+# Clean up the education levels for better display
+earnings_by_education <- earnings_by_education %>%
+  mutate(classif2.label = str_remove(classif2.label, "Occupation \\(ISCO-08\\): "))
+
+# Plotting
+ggplot(earnings_by_education, aes(x = classif2.label, y = average_earnings, fill = sex.label)) +
+  geom_bar(stat = "identity", position = position_dodge(width = 0.8)) +
+  labs(title = "Average Monthly Earnings by Sex and Education Level",
+       x = "Education Level",
+       y = "Average Monthly Earnings (in Złoty)",
+       fill = "Sex") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels for readability
+        legend.position = "top") +
+  scale_fill_manual(values = c("Sex: Female" = "#F08080", "Sex: Male" = "#20B2AA"))
