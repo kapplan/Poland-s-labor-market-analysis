@@ -40,7 +40,7 @@ There are seven different datasets covering various aspects of the labor market 
 
 Analyzes employment trends by year, sex, and population. Merges population and employment ratio data to calculate total employment and average employment ratio.
 
-![Employment Trends](employment_trends.jpeg)
+![Employment Trends](employment_trends_by_year_sex.jpeg)
 
 ### Educational Attainment
 
@@ -53,7 +53,7 @@ Examines the distribution of education levels by age bands and sex. Groups educa
 
 Investigates educational mismatch by gender over time. Analyzes the proportion of the population that is overeducated, undereducated, or has matched education levels.
 
-![Educational Missmatch](eductaional_mismatch.jpeg)
+![Educational Missmatch](educationaal_mismatch_by_gender.jpeg)
 
 ### Weekly Hours Worked
 
