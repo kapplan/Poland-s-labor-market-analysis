@@ -36,6 +36,8 @@ There are seven different datasets covering various aspects of the labor market 
 
 ## Analyses
 
+Kaggle Notebook and the datasets [Kaggle notebook](https://www.kaggle.com/code/basakkaplan/poland-s-labour-force-analysis-in-r)
+
 ### Employment Trends
 
 Analyzes employment trends by year, sex, and population. Merges population and employment ratio data to calculate total employment and average employment ratio.
