@@ -46,21 +46,34 @@ Analyzes employment trends by year, sex, and population. Merges population and e
 
 Examines the distribution of education levels by age bands and sex. Groups education levels and visualizes the distribution across different age groups.
 
+![Educational Attainment](education_by_age_and_sex.jpeg)
+
+
 ### Educational Mismatch
 
 Investigates educational mismatch by gender over time. Analyzes the proportion of the population that is overeducated, undereducated, or has matched education levels.
 
-### Occupation Analysis
+![Educational Missmatch](eductaional_mismatch.jpeg)
 
-Explores what occupations males and females work in and their respective employment counts. Focuses on different ISCO-08 occupations.
+### Weekly Hours Worked
+
+Examines trends in mean weekly hours worked in various occupations over time, with a breakdown by gender.
+
+![Weekly Hours](mean_weakly_hours_worked.jpeg)
+
 
 ### Monthly Earnings
 
 Analyzes average monthly earnings by sex and education level. Focuses on various job titles and visualizes the changes in earnings over time.
 
-### Weekly Hours Worked
+![Monthly Earnings](trend_average_monthly_earning.jpeg)
+![Monthly Earnings](mean_weakly_hours_worked.jpeg)
 
-Examines trends in mean weekly hours worked in various occupations over time, with a breakdown by gender.
+## Comparison of Earnings Between Genders in Female-Dominant ISCO-8 Occupations 
+
+Highlights the gender pay gap in female-dominant occupations for the year 2022. Men tend to earn more on average compared to women across several occupations, including professionals, technicians, and clerical support workers.
+
+![Monthly Earnings](comaprison_of_earnings_in_female_dominant_occupations.jpeg)
 
 ## Key Findings
 
