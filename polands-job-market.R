@@ -14,6 +14,8 @@ custom_colors <- c("Sex: Female" = "#F08080", "Sex: Male" = "#20B2AA")
 data_pop <- read.csv('/Users/apple/Downloads/POP_XWAP_SEX_AGE_NB_A-filtered-2024-01-14.csv', header = TRUE, sep = ',')
 data_emp <- read.csv('/Users/apple/Downloads/EMP_DWAP_SEX_AGE_RT_A-filtered-2024-01-14.csv', header = TRUE, sep = ';')
 
+str(data_pop)
+str(data_emp)
 # Clean and rename before merging
 # Rename columns in data_pop
 names(data_pop)[names(data_pop) == "sex.label"] <- "Sex"
@@ -26,6 +28,11 @@ names(data_pop) <- c("Country", "Indicator", "Source", "Sex", "Age", "Year", "Po
 # Rename columns in data_emp
 names(data_emp)[names(data_emp) == "sex.label"] <- "Sex"
 names(data_emp)[names(data_emp) == "time"] <- "Year"
+
+head(data_pop)
+head(data_emp)
+
+summary(data_emp)
 
 # Verify the changes
 print(names(data_pop))
@@ -118,7 +125,7 @@ ggplot(data_summarized, aes(x = classif1.label, y = total.obs.value, fill = Educ
 # ANALYSIS 3 
 # Educational mismatch data 
 data1 <- read.csv('/Users/apple/Downloads/sexemploymenteducationalmismatch.csv',  header = TRUE, sep = ';')
-data1
+summary(data1)
 
 data1 <- data1 %>%
   dplyr::mutate_at(vars(contains("label")), as.factor) %>% # convert labels to factors
@@ -171,7 +178,7 @@ data_melted <- data_long %>%
 
 # Plotting
 ggplot(data_melted, aes(x = as.factor(time), y = Percentage, fill = Category)) +
-  geom_bar(stat = 'identity0', position = 'stack') +
+  geom_bar(stat = 'identity', position = 'stack') +
   facet_wrap(~ sex.label, scales = 'free_y') +
   scale_fill_viridis_d(begin = 0.3, end = 0.9, direction = 1, option = "D") +  
   theme_minimal() +
@@ -259,7 +266,7 @@ server <- function(input, output) {
         colorway = custom_colors
       )
   })
-  
+
   # Plot for the second selected year
   output$plot2 <- renderPlotly({
     filtered_data <- long_data[long_data$Year == input$year2,]
@@ -281,6 +288,7 @@ shinyApp(ui, server)
 
 # Load the Data
 data <- read.csv('/Users/apple/Downloads/meanhoursbysexoccupation.csv', header = TRUE, sep = ';')
+str(data)
 
 # Clean and prepare the data
 data <- data %>%
