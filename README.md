@@ -39,6 +39,7 @@ There are seven different datasets covering various aspects of the labor market 
 ### Employment Trends
 
 Analyzes employment trends by year, sex, and population. Merges population and employment ratio data to calculate total employment and average employment ratio.
+
 ![Employment Trends](employment_trends.jpeg)
 
 ### Educational Attainment
