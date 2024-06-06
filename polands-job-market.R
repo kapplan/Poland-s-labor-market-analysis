@@ -192,7 +192,7 @@ ggplot(data_melted, aes(x = as.factor(time), y = Percentage, fill = Category)) +
   geom_text(
     aes(label = scales::percent(Percentage/100, accuracy =.05)), 
     position = position_stack(vjust = 0.5), 
-    size = 2, 
+    size = 2.8, 
     color = "white", 
     check_overlap = TRUE
   ) +
@@ -321,7 +321,6 @@ p <- ggplot(hours_trend, aes(x = Year, y = mean_hours, color = sex.label, group 
 
 # Print the plot
 print(p)
-
 
 # ANALYSIS 6
 # Average Monthly Earning by Sex and Occupation
