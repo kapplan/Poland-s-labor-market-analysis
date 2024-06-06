@@ -36,7 +36,7 @@ There are seven different datasets covering various aspects of the labor market 
 
 ## Analyses
 
-Kaggle Notebook and the datasets [Kaggle notebook](https://www.kaggle.com/code/basakkaplan/poland-s-labour-force-analysis-in-r)
+For more, visit this [Kaggle notebook](https://www.kaggle.com/code/basakkaplan/poland-s-labour-force-analysis-in-r).
 
 ### Employment Trends
 
