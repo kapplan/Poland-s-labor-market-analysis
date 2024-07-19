@@ -21,7 +21,7 @@ This project aims to analyze the labor market in Poland over the span of 10 year
 ## Introduction
 Poland has witnessed significant changes shaped by economic fluctuations, political decisions, and global events such as the COVID-19 pandemic. Through a series of visualizations, we explore the shifting sands of the labor market, focusing on critical aspects like gender inequality, educational trends, and income disparities over the years.
 
-Following visualisations help us in exploring the changes in the labor market in Poland over the span of 10 years, from 2012 to 2022. The focus areas include employment patterns, educational attainment levels, monthly earnings, educational mismatch, and gender pay dispaarities. By examining these factors, we aim to gain insights into gender inequality, education patterns, and changes in the labor market over the specified period.
+Following visualisations help us in exploring the changes in the labor market in Poland over the span of 10 years, from 2012 to 2022. The focus areas include employment patterns, educational attainment levels, monthly earnings, educational mismatch, and gender pay disparities. By examining these factors, we aim to gain insights into gender inequality, education patterns, and changes in the labor market over the specified period.
 
 ## ILOSTAT Datasets
 
