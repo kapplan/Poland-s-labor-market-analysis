@@ -5,7 +5,7 @@ This project aims to analyze the labor market in Poland over the span of 10 year
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Datasets](#datasets)
+- [ILOSTAT Datasets](#ILOSTAT-Datasets)
 - [Analyses](#analyses)
   - [Employment Trends](#employment-trends)
   - [Educational Attainment](#educational-attainment)
